@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pong Game</title>
+<style>
+    canvas {
+        display: block;
+        margin: auto;
+        background: #000;
+        border: 2px solid #fff;
+    }
+</style>
+</head>
+<body>
+<canvas id="pongCanvas" width="600" height="400"></canvas>
+<script>
+    
+const canvas = document.getElementById('pongCanvas');
+const ctx = canvas.getContext('2d');
+
+const paddleWidth = 10;
+const paddleHeight = 100;
+const ballRadius = 10;
+let leftPaddleY = (canvas.height - paddleHeight) / 2;
+let rightPaddleY = (canvas.height - paddleHeight) / 2;
+let ballX = canvas.width / 2;
+let ballY = canvas.height / 2;
+let ballSpeedX = 2;
+let ballSpeedY = 2;
+let leftScore = 0;
+let rightScore = 0;
+
+function drawPaddle(x, y) {
+    ctx.fillStyle = '#FFF';
+    ctx.fillRect(x, y, paddleWidth, paddleHeight);
+}
+
+function drawBall(x, y) {
+    ctx.fillStyle = '#FFF';
+    ctx.beginPath();
+    ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawScore() {
+    ctx.fillStyle = '#FFF';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Left Score: ${leftScore}`, 100, 30);
+    ctx.fillText(`Right Score: ${rightScore}`, canvas.width - 200, 30);
+}
+
+function moveBall() {
+    ballX += ballSpeedX;
+    ballY += ballSpeedY;
+
+    // Bounce off top and bottom
+    if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) {
+        ballSpeedY = -ballSpeedY;
+    }
+
+    // Bounce off paddles
+    if (ballX - ballRadius < paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight ||
+        ballX + ballRadius > canvas.width - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
+        ballSpeedX = -ballSpeedX;
+    }
+
+    // Update scores and reset ball if it goes past paddle
+    if (ballX < 0) {
+        rightScore++;
+        resetBall();
+    } else if (ballX > canvas.width) {
+        leftScore++;
+        resetBall();
+    }
+}
+
+function moveLeftPaddle() {
+    const paddleCenter = leftPaddleY + paddleHeight / 2;
+    if (paddleCenter < ballY - 35) {
+        leftPaddleY += 3;  // Move down
+    } else if (paddleCenter > ballY + 35) {
+        leftPaddleY -= 3;  // Move up
+    }
+
+    // Keep the paddle within the canvas
+    if (leftPaddleY < 0) leftPaddleY = 0;
+    if (leftPaddleY + paddleHeight > canvas.height) leftPaddleY = canvas.height - paddleHeight;
+}
+
+function resetBall() {
+    ballX = canvas.width / 2;
+    ballY = canvas.height / 2;
+    ballSpeedX = 2;
+    ballSpeedY = 2;
+}
+
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    moveLeftPaddle();
+    drawPaddle(0, leftPaddleY);
+    drawPaddle(canvas.width - paddleWidth, rightPaddleY);
+    drawBall(ballX, ballY);
+    drawScore();
+    moveBall();
+
+    requestAnimationFrame(gameLoop);
+}
+
+document.addEventListener('keydown', (event) => {
+    switch (event.code) {
+        case 'ArrowUp':
+            rightPaddleY -= 20;
+            if (rightPaddleY < 0) rightPaddleY = 0;
+            break;
+        case 'ArrowDown':
+            rightPaddleY += 20;
+            if (rightPaddleY + paddleHeight > canvas.height) rightPaddleY = canvas.height - paddleHeight;
+            break;
+    }
+});
+
+gameLoop();
+
+</script>
+</body>
+</html>
